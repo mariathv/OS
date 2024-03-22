@@ -8,8 +8,17 @@
 
 #include "structs_funcs.h"
 
+#define MAX_CLIENTS 50
+#define MAX_GROUPS 50 //non-dynamic programming thus taking 50 as max
+
+
+
 void red() {
     printf("\033[1;31m");
+}
+
+void green() {
+    printf("\033[1;32m");
 }
 
 void reset() {
@@ -19,8 +28,8 @@ void reset() {
 void blue() {
     printf("\033[1;34m");
 }
-
 int main() {
+    
     red();
     printf("> enter the number of clients: ");
     int cls;
@@ -69,18 +78,18 @@ int main() {
 
     printf("%c", 12);
 
-    int MAX_CLIENTS = 100; // Define your maximum number of clients
-    chat chats[cls][cls];
+    messages msges;
+    GC grps[cls][10]; //a single client is limited to creating only 10 groups
+    int currgcs[cls];
 
-    // Chat initialization
-    for (int i = 0; i < cls; i++) {
-        for (int j = 0; j < cls; j++) {
-            chats[i][j].client1_id = -1;
-            chats[i][j].client2_id = -1;
-            chats[i][j].num_messages = 0;
+    // Initialize message struct
+    for(int i = 0; i < MAX_CLIENTS; i++) {
+        for(int j = 0; j < MAX_CLIENTS; j++) {
+            msges.isNull[i][j] = true;
+            msges.messages[i][j][0] = '\0'; // Initialize as empty strings
         }
     }
-
+    
     printf("-> server interface\n");
     
     // Continuously check for new messages
@@ -94,21 +103,74 @@ int main() {
         
         // Check if a message is available
         if (serverData->flag == true) {
-          printf("---\n");
-          printf("\033[1;34mclient %d \033[0msends a _private_ message to \033[1;34mclient %d\n", serverData->from, serverData->to);
-          printf("\033[1;34mclient %d \033[0mto \033[1;34mclient %d: \033[1;32m %s\n", serverData->from, serverData->to, serverData->message);
-          printf("---\n");
+            printf("\033[0m---\n");
+            printf("\033[1;34mclient %d \033[0msends a _private_ message to \033[1;34mclient %d\n", serverData->from, serverData->to);
+            printf("\033[1;34mclient %d \033[0mto \033[1;34mclient %d: \033[1;32m %s\n", serverData->from, serverData->to, serverData->message);
+            printf("\033[0m---\n");
+            
+            // Update messages struct with the new message
+            int from = serverData->from;
+            int to = serverData->to;
+            if (from >= 0 && from < MAX_CLIENTS && to >= 0 && to < MAX_CLIENTS) {
+                char actmsg[250];
+                actmsg[0] = '\0';
+                sprintf(actmsg, "from client %d: ", from);
+                strcat(actmsg, serverData->message);
+                strcat(actmsg, "\n");
+                // Concatenate the new message with the existing ones
+                strcat(msges.messages[from][to], actmsg);
+                strcat(msges.messages[to][from], actmsg);
+                // Mark the message as non-null
+                msges.isNull[from][to] = false;
+                msges.isNull[to][from] = false;
+                // Display the chat
+               
+            } else {
+                printf("Error: Invalid client IDs\n");
+            }
+
             // Reset the flag after reading the message
             serverData->flag = false;
         }
-        
-        // Detach from shared memory
+
+        if(serverData->openChat == true){
+            int from = serverData->from;
+            int to = serverData->to;
+            if(msges.isNull[to][from]!=true){
+            printf("opening chat between client %d and client %d\n", to, from);
+            char msgchat[500]; msgchat[0]='\0';
+            strcpy(msgchat, msges.messages[to][from]);
+            strcpy(serverData->fullchat, msgchat);
+            }else{
+                strcpy(serverData->fullchat, "failed");
+                printf("request of opening chat between client %d and client %d failed\n", to, from);
+            }
+            serverData->openChat=false;
+        }
+
+        if(serverData->crtgrp == true){
+            int reqID = serverData->from;
+            strcpy(grps[reqID][currgcs[reqID]].name, serverData->message);
+            grps[reqID][currgcs[reqID]].id=currgcs[reqID];
+            for(int i=0; i<serverData->currcl; i++){
+                grps[reqID][currgcs[reqID]].clientIDs[i]=serverData->selectedcl[i];
+            }
+            grps[reqID][currgcs[reqID]].currclients=serverData->currcl;
+            printf("added clients::\n");
+                green();
+                for(int i=0; i<serverData->currcl; i++){
+                    printf("client %d\n",grps[reqID][currgcs[reqID]].clientIDs[i]);
+                }
+                reset();
+            currgcs[reqID]++;
+            printf("> created group chat '%s' requested by \033[1;31mclient %d\n",serverData->message, reqID);
+            reset();
+            serverData->crtgrp=false;
+        }
         if (shmdt(serverData) == -1) {
             perror("shmdt");
             exit(EXIT_FAILURE);
         }
-        
-        // Introduce a small delay to avoid busy-waiting
         usleep(10000); // 10 milliseconds
     }
     
