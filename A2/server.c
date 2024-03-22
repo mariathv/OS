@@ -81,6 +81,10 @@ int main() {
     messages msges;
     GC grps[cls][10]; //a single client is limited to creating only 10 groups
     int currgcs[cls];
+    for(int i=0 ; i<cls; i++){
+        currgcs[i]=0;
+    }
+    
 
     // Initialize message struct
     for(int i = 0; i < MAX_CLIENTS; i++) {
@@ -147,25 +151,46 @@ int main() {
             }
             serverData->openChat=false;
         }
-
+        //name changes in this scnippet
         if(serverData->crtgrp == true){
             int reqID = serverData->from;
+            reqID--;
             strcpy(grps[reqID][currgcs[reqID]].name, serverData->message);
+            
             grps[reqID][currgcs[reqID]].id=currgcs[reqID];
             for(int i=0; i<serverData->currcl; i++){
                 grps[reqID][currgcs[reqID]].clientIDs[i]=serverData->selectedcl[i];
             }
             grps[reqID][currgcs[reqID]].currclients=serverData->currcl;
             printf("added clients::\n");
-                green();
-                for(int i=0; i<serverData->currcl; i++){
-                    printf("client %d\n",grps[reqID][currgcs[reqID]].clientIDs[i]);
-                }
-                reset();
-            currgcs[reqID]++;
-            printf("> created group chat '%s' requested by \033[1;31mclient %d\n",serverData->message, reqID);
+            green();
+            for(int i=0; i<serverData->currcl; i++){
+                printf("client %d\n",grps[reqID][currgcs[reqID]].clientIDs[i]);
+            }
+            reset();
+            currgcs[reqID]++; //CAUSES PROBLEMO
+            
+            printf("> created group chat '%s' requested by \033[1;31mclient %d\n",serverData->message, reqID+1);
             reset();
             serverData->crtgrp=false;
+        }
+
+        if(serverData->grpshow==true){
+            int reqID=serverData->from;
+            reqID--;
+            printf("group message send request from client %d\n", reqID+1);
+                red();
+            for(int i=0; i<currgcs[reqID]; i++){
+                strcpy(serverData->chararrshare[i],grps[reqID][i].name);
+            }
+            reset();
+            if(currgcs[reqID]==0){
+                serverData->intpass=0;
+            }else
+            serverData->intpass=currgcs[reqID];
+
+            serverData->grpshow=false;
+            
         }
         if (shmdt(serverData) == -1) {
             perror("shmdt");
