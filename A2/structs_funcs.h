@@ -20,9 +20,12 @@ typedef struct shared {
     char message[256];
     bool openChat;
     bool crtgrp;
+    bool grpshow;
     char fullchat[1000];
     int selectedcl[50];
+    char chararrshare[10][20];
     int currcl;
+    int intpass;
 } SharedData;
 
 typedef struct {
