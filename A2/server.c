@@ -8,26 +8,19 @@
 
 #include "structs_funcs.h"
 
+void red() {
+    printf("\033[1;31m");
+}
 
-void writemessage(int sender_id, int receiver_id, const char* message);
+void reset() {
+    printf("\033[0m");
+}
 
-void red () {
-  printf("\033[1;31m");
-}
-void green() {
-    printf("\033[1;32m");
-}
-void reset () {
-  printf("\033[0m");
-}
 void blue() {
     printf("\033[1;34m");
 }
 
-
-
-//add sleep later
-int main(){
+int main() {
     red();
     printf("> enter the number of clients: ");
     int cls;
@@ -35,55 +28,51 @@ int main(){
     printf("\n");
     int clspids[cls];
 
-    int tmp;
-    SharedData *sharedmem;
-    char buff [258];
     int shmID;
     
-    shmID = shmget((key_t)2004, 1024,0666|IPC_CREAT);
-    if(shmID == -1){
-      perror("SHAREDMEM :: ");
-      exit(1);
+    shmID = shmget((key_t)2004, 1024, 0666 | IPC_CREAT);
+    if (shmID == -1) {
+        perror("SHAREDMEM :: ");
+        exit(1);
     }
-    sharedmem = shmat(shmID,NULL,0);
-    printf("- server process attached at %p\n", sharedmem);
     reset();
     printf("> shared memory key :: %d\n", shmID);
 
-    for(int i=0; i<cls; i++){
-        //parent will be the only one running (childs exit thru exec comd)
+    for (int i = 0; i < cls; i++) {
+        // Parent will be the only one running (childs exit through exec command)
         pid_t pid = fork();
-        if(pid == -1){
+        if (pid == -1) {
             perror("::! error creating client\n");
             exit(0);
         }
-        if(pid == 0){
-            //child
+        if (pid == 0) {
+            // Child
             blue();
-            printf("- client process %d attached at %p\n",i+1, sharedmem);
-            printf("client %d connected. (pid. %d)\n",i+1, getpid());
-            clspids[i]=getpid();
+            printf("- client process %d attached at %d\n", i+1, shmID);
+            printf("client %d connected. (pid. %d)\n", i+1, getpid());
             char arg[10]; 
             sprintf(arg, "%d", i+1);
             char clss[10]; 
-            sprintf(arg, "%d", cls);
+            sprintf(clss, "%d", cls);
             char shmID_str[10]; 
             sprintf(shmID_str, "%d", shmID); 
-            
 
-            execlp("gnome-terminal", "gnome-terminal", "--", "./client", arg, shmID_str, clss,NULL);
+            execlp("gnome-terminal", "gnome-terminal", "--", "./client", arg, shmID_str, clss, NULL);
             perror("::! exec failed!\n");
             exit(0);
         }
     }
     reset();
-    for(int i=0 ; i<cls; i++)
-    wait(NULL);
+    for (int i = 0; i < cls; i++) {
+        wait(NULL);
+    }
 
     printf("%c", 12);
+
+    int MAX_CLIENTS = 100; // Define your maximum number of clients
     chat chats[cls][cls];
 
-    //chat 
+    // Chat initialization
     for (int i = 0; i < cls; i++) {
         for (int j = 0; j < cls; j++) {
             chats[i][j].client1_id = -1;
@@ -91,48 +80,37 @@ int main(){
             chats[i][j].num_messages = 0;
         }
     }
-    if (shmdt(sharedmem) == -1) {
-        perror("shmdt");
-        exit(EXIT_FAILURE);
-    }
-    printf("-> server interface\n");
-    SharedData *serverData;
-    while(1){
-      //only exits with kill ctrl+c
-      serverData = shmat(shmID, NULL, 0);
-      if(serverData->flag==true){
-        printf("message: %s", serverData->message);
-      }
-    }
-    //strcpy(sharedmem,cls); 
-    if (shmdt(sharedmem) == -1) {
-        perror("shmdt");
-        exit(EXIT_FAILURE);
-    }
-}
 
-// void writemessage(int sender_id, int receiver_id, const char* message) {
-//     int chat_exists = 0;
-//     for (int i = 0; i < MAX_CLIENTS; i++) {
-//         if ((chats[i][0].client1_id == sender_id && chats[i][0].client2_id == receiver_id) ||
-//             (chats[i][0].client1_id == receiver_id && chats[i][0].client2_id == sender_id)) {
-//             // Chat already exists
-//             chat_exists = 1;
-//             snprintf(chats[i][0].messages[chats[i][0].num_messages], sizeof(chats[i][0].messages[0]), "%s", message);
-//             chats[i][0].num_messages++;
-//             break;
-//         }
-//     }
-//     if (!chat_exists) {
-//         // Create a new chat
-//         for (int i = 0; i < MAX_CLIENTS; i++) {
-//             if (chats[i][0].client1_id == -1 && chats[i][0].client2_id == -1) {
-//                 chats[i][0].client1_id = sender_id;
-//                 chats[i][0].client2_id = receiver_id;
-//                 snprintf(chats[i][0].messages[chats[i][0].num_messages], sizeof(chats[i][0].messages[0]), "%s", message);
-//                 chats[i][0].num_messages++;
-//                 break;
-//             }
-//         }
-//     }
-// }
+    printf("-> server interface\n");
+    
+    // Continuously check for new messages
+    while (1) {
+        // Attach to shared memory
+        SharedData *serverData = shmat(shmID, NULL, 0);
+        if (serverData == (void *) -1) {
+            perror("shmat");
+            exit(EXIT_FAILURE);
+        }
+        
+        // Check if a message is available
+        if (serverData->flag == true) {
+          printf("---\n");
+          printf("\033[1;34mclient %d \033[0msends a _private_ message to \033[1;34mclient %d\n", serverData->from, serverData->to);
+          printf("\033[1;34mclient %d \033[0mto \033[1;34mclient %d: \033[1;32m %s\n", serverData->from, serverData->to, serverData->message);
+          printf("---\n");
+            // Reset the flag after reading the message
+            serverData->flag = false;
+        }
+        
+        // Detach from shared memory
+        if (shmdt(serverData) == -1) {
+            perror("shmdt");
+            exit(EXIT_FAILURE);
+        }
+        
+        // Introduce a small delay to avoid busy-waiting
+        usleep(10000); // 10 milliseconds
+    }
+    
+    return 0;
+}
