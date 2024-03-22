@@ -42,6 +42,7 @@ int main(int argc, char *argv[]) {
     sharedmem->flag = false; // Initialize flag to false
     sharedmem->openChat=false;
     sharedmem->crtgrp=false;
+    sharedmem->grpshow=false;
 
     green();
     printf("-> client %d interface\n", clientID);
@@ -49,9 +50,10 @@ int main(int argc, char *argv[]) {
 
     while (1) {
         blue();
-        printf("\n1. Send Message\n");
+        printf("\n1. Send Message (Private)\n");
         printf("2. Open Chat\n");
         printf("3. Create Group Chat\n");
+        printf("4. Send Message(Group)\n");
         printf("0. Exit\n");
         reset();
         scanf("%d", &ch);
@@ -177,7 +179,7 @@ int main(int argc, char *argv[]) {
                 int tselected=0;
                 // Prompt the user to choose clients
                 int sl;
-                printf("enter the client numbers you want to add (0 to finish): ");
+                printf("enter the client numbers you want to add (0 to finish): \n");
                 do{
 
                     scanf("%d", &sl);
@@ -205,20 +207,46 @@ int main(int argc, char *argv[]) {
                     sharedmem->selectedcl[i]=selected[i];
                 }
                 sharedmem->currcl=tselected;
-
-                
                 sharedmem->crtgrp=true;
+
                 
-
-
+                if (shmdt(sharedmem) == -1) {
+                     perror("shmdt");
+                     printf("\n> press any key to return");
+                     getchar();
+                     exit(EXIT_FAILURE);
+                }
             break;
             case 4:
-            
-                if (shmctl(shmID, IPC_RMID, NULL) == -1) {
-                perror("shmctl");
-                exit(1);
-            }
-                break;
+                sharedmem = shmat(shmID, NULL, 0);
+                sharedmem->from = clientID;
+                sharedmem->grpshow=true;
+                if (shmdt(sharedmem) == -1) {
+                     perror("shmdt");
+                     printf("\n> press any key to return");
+                     getchar();
+                     exit(EXIT_FAILURE);
+                }
+                printf("fetching...\n\n");
+                sleep(1);
+                sharedmem = shmat(shmID, NULL, 0);
+                if(sharedmem->intpass==0)
+                printf("no gcs joined/created.\n");
+                else{
+                    green();
+                    for(int i=0; i<sharedmem->intpass; i++)
+                    printf("%d. %s",i+1, sharedmem->chararrshare[i]);
+                    reset();
+                }
+                printf("\n");
+                
+                if (shmdt(sharedmem) == -1) {
+                     perror("shmdt");
+                     printf("\n> press any key to return");
+                     getchar();
+                     exit(EXIT_FAILURE);
+                }
+            break;
         }
     }
 
