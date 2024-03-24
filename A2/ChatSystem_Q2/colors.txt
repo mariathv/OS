@@ -1,0 +1,10 @@
+light white : \033[1;97m
+light cyan : \033[1;96m
+light blue : \033[1;94m
+light magenta : \033[1;95m
+magenta : \033[1;35m
+lightGreen : \033[1;92m
+
+
+layout:: 
+int values -> 
