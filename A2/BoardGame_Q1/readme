@@ -1,0 +1,47 @@
+Implement a simple multiplayer game where players can move around a game board and collect items using
+processes and pipes, a message-passing approach can be employed to ensure synchronization and
+coordination among players.
+Game Board Generation:
+Generate a random number between 10 - 99.
+Multiply the generated number by the last digit of your roll number.
+Divide your roll number by the generated number.
+Take the mod of the result with 25. If the number is less than 10, add 15 to it. (it will make n)
+Create an (n x n) board based on the calculated size.
+
+Player Movement and Item Collection:
+Create a separate process for each player, responsible for their movement and item collection.
+Implement a message-passing system using pipes between the main process and player processes.
+Message Passing:
+Each player process sends messages to the main process when they move or collect an item.
+Define a structured message format containing information about the player's actions (movement, item
+collection) and current position.
+Use pipes to facilitate communication between the main process and player processes.
+Main Process Logic:
+The main process handles game logic, such as generating the game board, displaying the game interface,
+and updating scores.
+Poll the pipes of each player process to receive updates.
+Update the game state and scores based on the received messages.
+Synchronization:
+Since processes have their own address space, there is no need for synchronization techniques. However,
+proper synchronization is achieved through message passing.
+Race Condition:
+A race condition occurs when multiple processes try to access and modify the same game state
+simultaneously without proper synchronization. In this case, if two processes attempt to collect the same
+item simultaneously, it might lead to unpredictable behavior and inconsistencies in the game. For example,
+both processes might receive a message indicating that the item is available, causing both of them to
+collect it. This could result in duplication of items or other unintended consequences
+Message Ordering:
+The order in which messages are received and processed by the main process determines the outcome. If
+one process sends a message to collect an item before the other process, it might successfully collect the
+item, leaving the second process to receive a message indicating that the item has already been collected.
+Alternatively, if the second process's message is processed first, it might successfully collect the item,
+causing the first process to receive a message indicating that the item is no longer available
+Priority Handling:
+Consider introducing a scoring system for players.
+Use the player's score or other game-related factors to prioritize handling messages from processes.
+Processes with higher scores or better performance are given higher priority in the game.
+Final Note:
+Utilize processes and pipes to achieve a parallel and message-driven architecture, ensuring that conflicts
+between player processes are avoided.
+Leverage the independence of processes to enhance the overall concurrency and responsiveness of the
+multiplayer game.
