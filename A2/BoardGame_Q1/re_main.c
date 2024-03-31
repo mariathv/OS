@@ -72,9 +72,9 @@ void generateBoard(int n, int itemsn, int turnof, int totalplayers, int xcords[]
                     //k++;
                     flag= true;
                     if(k==turnof){
-                        printf("|\033[1;107m   "); reset();
+                        printf("|\033[1;90m\033[1;107m %d ",k+1); reset();
                     }else
-                    printf("|\033[1;10%dm   ", c); reset();
+                    printf("|\033[1;90m\033[1;10%dm %d ", c, k+1); reset();
                     if(c==4) c=3;
                     else if(c==3) c=5;
                     else if(c==5) c=6;
@@ -236,7 +236,8 @@ int main(){
     //MAIN PROCESS
 
     //at a time (numofplayers+1) items will be generated
-    int itemsn=numofplayers+1;
+    //int itemsn=numofplayers+1;
+    int itemsn = gridnum/3;
     int itemxPos[itemsn];
     int itemyPos[itemsn];
     for(int i=0; i<itemsn; i++){
@@ -264,9 +265,17 @@ int main(){
                 for(int i=0; i<itemsn; i++){
                     if(mainget.xPos == itemxPos[i] && mainget.yPos == itemyPos[i]){
                         itemxPos[i]=-1; itemyPos[i]=-1;
+                        do{
+                            alrexsflag=false;
+                            itemxPos[i]=rand()%(gridnum-1);
+                            itemyPos[i]=rand()%(gridnum-1);
+                            if(checkpos(i, itemsn, itemxPos[i], itemyPos[i],itemxPos, itemyPos,numofplayers,xCords, yCords)==false){
+                                alrexsflag=true;
+                            }
+                        }while(alrexsflag);
                         itemscollected++;
                         score[mainget.turnof-1]++;
-                        if(score[mainget.turnof-1]==3){
+                        if(score[mainget.turnof-1]==10){
                             printf("\033[1;94mPLAYER %d \033[1;92mWON!\n", mainget.turnof);
                             for(int i=0; i<numofplayers;i++){
                                 kill(pids[i], SIGKILL);
@@ -277,7 +286,7 @@ int main(){
                     }
                 }
             }
-            if(itemscollected==-1 || itemscollected==itemsn){
+            if(itemscollected==-1){
                 itemscollected=0;
                 for(int i=0; i<itemsn; i++){
                     do{
