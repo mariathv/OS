@@ -158,7 +158,7 @@ int main() {
             }else{
                 strcpy(serverData->fullchat, "failed");
                 lightRed();
-                printf("open chat request between client %d and client %d failed\n", to, from); reset();
+                printf("open chat request between \033[1;94mclient %d \033[0mand \033[1;94mclient %d failed\n", to, from); reset();
             }
             
             serverData->openChat=false;
@@ -166,6 +166,7 @@ int main() {
         }
         //create group request from clients
         if(serverData->crtgrp == true){
+            printf("\033[0m---\n");
             int reqID = serverData->from;
             reqID--;
             strcpy(grps[reqID][currgcs[reqID]].name, serverData->message);
@@ -176,23 +177,25 @@ int main() {
             }
             grps[reqID][currgcs[reqID]].currclients=serverData->currcl;
             printf("added clients::\n");
-            green();
+            printf("\033[1;94m");
             for(int i=0; i<serverData->currcl; i++){
                 printf("client %d\n",grps[reqID][currgcs[reqID]].clientIDs[i]);
             }
             reset();
             currgcs[reqID]++; //CAUSES PROBLEMO
             
-            printf("> created group chat '%s' requested by \033[1;31mclient %d\n",serverData->message, reqID+1);
+            printf("created group chat \033[1;35m'%s' \033[0mrequested by \033[1;94mclient %d\n",serverData->message, reqID+1);
             reset();
             serverData->crtgrp=false;
+            printf("\033[0m---\n");
         }
         //just a helper function to send all the joined groups of clients
         if(serverData->grpshow==true){
+            printf("\033[0m---\n");
             int reqID=serverData->from;
             reqID--;
-            printf("group chat list request from client %d\n", reqID+1);
-            red(); int left=0;
+            printf("group chat list request from \033[1;94mclient %d\n", reqID+1);
+            reset(); int left=0;
             for(int i=0; i<currgcs[reqID]; i++){
                 strcpy(serverData->chararrshare[i],grps[reqID][i].name);
                 left=i;
@@ -214,21 +217,24 @@ int main() {
             }
             reset();
             if(currgcs[reqID]==0 && none){
+                red();
                 printf("client %d group list retrieval error\n", reqID+1);
+                reset();
                 serverData->intpass=-1;
             }else{
             serverData->intpass=currgcs[reqID]+joinedgcs;
             }
 
             serverData->grpshow=false;
+            printf("\033[0m---\n");
         }
         //message send to group chat request from clients
         if(serverData->grpmsgsend==true || serverData->premessagesend == true){
+            printf("\033[0m---\n");
             char gcname [20];
             int reqID=serverData->from;
             reqID--;
             strcpy(gcname,serverData->message1);
-            
             int slcgc; bool found = false; bool nothost=false;
             //checking within its own created groups
             for(int i=0; i<currgcs[reqID]; i++){
@@ -261,18 +267,20 @@ int main() {
                serverData->failflag=true;
                 
             }else{
-                printf(":: connected to group %s requested by client %d\n",gcname,reqID+1);
+                printf(":: connected to \033[1;92mgroup %s \033[0mrequested by \033[1;94mclient %d\n",gcname,reqID+1);
+                reset();
                 if(serverData->grpmsgsend){
                 green();
-                printf("client %d send a message to group %s \n", reqID+1, gcname);
-                printf("client %d to gc : %s\n",reqID+1,serverData->message);
+                printf("\033[1;94mclient %d\033[0m sends a message to \033[1;92mgroup %s \n", reqID+1, gcname);
+                reset();
+                printf("\033[1;94mclient %d \033[0m : \033[1;92m %s\n",reqID+1,serverData->message);
                 reset();
                 char actmsg[250];
                 actmsg[0] = '\0';
 
 
 
-                sprintf(actmsg, "from client %d: ", reqID+1);
+                sprintf(actmsg, "\033[1;97mfrom client %d: \033[1;92m", reqID+1);
                 strcat(actmsg, serverData->message);
 
                 strcat(actmsg, "\n");
@@ -288,6 +296,7 @@ int main() {
             
             serverData->grpmsgsend=false;
             serverData->premessagesend=false;
+            printf("\033[0m---\n");
         }
         //group message chat open request from client
 
@@ -323,15 +332,19 @@ int main() {
             }
 
             if(!found){
+                red();
                 printf("::error connecting to grp %s\n", gcname);
+                reset();
                 serverData->failflag=true;
                 
             }else{
                 if(!nothost){
-                printf("connected to group %s\n", grps[reqID][slcgc].name);
+                printf("\033[1;92mconnected to group %s\n", grps[reqID][slcgc].name);
+                reset();
                 strcpy(serverData->fullchat,grps[reqID][slcgc].fullchat);
                 }else{
-                    printf("connected to group %s\n", grps[hostID][slcgc].name);
+                    printf("\033[1;92mconnected to group %s\n", grps[hostID][slcgc].name);
+                    reset();
                     strcpy(serverData->fullchat,grps[hostID][slcgc].fullchat);
                 }
             }
