@@ -12,13 +12,37 @@
 
 #include "structQ1.h"
 
+
+void reset() {
+    printf("\033[0m");
+}
+
 void clear_input_buffer() {
     int c;
     while ((c = getchar()) != '\n' && c != EOF) {}
 }
 
-void reset() {
-    printf("\033[0m");
+void pressentertocont(){
+    printf("\033[1;92m");
+    printf("press Enter to continue...");
+    while(getchar() != '\n'); // Wait for Enter key press
+    reset();
+    return;
+}
+
+void instructions(){
+    system("clear");
+    printf("======================================\n");
+    printf("\033[1;97m> \033[1;94mmax players 4\n");
+    printf("\033[1;97m> \033[1;94m'w a s d' to move around the board\n");
+    printf("\033[1;97m> \033[1;94mturn based game; collect randomly generated items\n");
+    printf("\033[1;97m> \033[1;94mfirst to 10 score win\n");
+    getchar(); reset();
+    printf("======================================\n");
+    clear_input_buffer();
+    system("clear");
+    return;
+    
 }
 
 bool checkpos(int itemno, int itemsn, int x, int y, int itemsx[], int itemsy[], int totalp, int xcords[], int ycords[]){
@@ -78,12 +102,14 @@ void generateBoard(int n, int itemsn, int turnof, int totalplayers, int xcords[]
                     if(c==4) c=3;
                     else if(c==3) c=5;
                     else if(c==5) c=6;
+                    else
+                    c=4;
                 }
             }
             for(int k=0; k<itemsn; k++){
                 if(i==yitems[k] && j==xitems[k]){
                     flag=true;
-                    printf("|\033[1;91m O "); reset();
+                    printf("|\033[1;91mXXX"); reset();
                 }
             }
             if(!flag)
@@ -103,6 +129,20 @@ void generateBoard(int n, int itemsn, int turnof, int totalplayers, int xcords[]
 
 int main(){
     //just a setup for reading key without pressing enter (NON BLOCKING READ)
+    int choice;
+    do{
+    printf("\nAdventure Quest: Galactic Pursuit\n");
+    printf("======================================\n");
+    printf("\033[1;97m1. \033[1;94mPlay\n\033[1;97m2. \033[1;94mInstuctions\n\033[1;97m3. \033[1;94mExit\n");
+    reset();
+    scanf("%d",&choice);
+    if(choice==2){
+        instructions();
+    }else if(choice == 3)
+    exit(0);}while(choice==2);
+
+
+
     struct termios oldt, newt;
     tcgetattr(STDIN_FILENO, &oldt);
     newt = oldt;
@@ -124,11 +164,11 @@ int main(){
     
     int numofplayers=0;
  
-
-    printf("grid size :: %d\n", gridnum);
-    printf("enter number of players (max 5) ::");
+    system("clear");
+    printf("grid size :: %d\n", gridnum);reset();
+    printf("\033[1;35menter number of players (max 4) ::\033[1;97m");
     scanf("%d", &numofplayers);
-
+    reset();
     int xCords[numofplayers];
     int yCords[numofplayers];
 
