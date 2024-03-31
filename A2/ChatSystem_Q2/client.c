@@ -53,19 +53,19 @@ int main(int argc, char *argv[]) {
     sharedmem->failflag=false;
     sharedmem->premessagesend=false;
 
-    green();
-    printf("-> client %d interface\n", clientID);
-    printf("- client process %d attached at %d\n", clientID, shmID);
 
     while (1) {
         //clearConsole();
+        system("clear");
          
-        printf("\n1. \033[1;34mSend Message (Private)\n");
-        printf("2. \033[1;34mOpen Chat (Private)\n");
-        printf("3. \033[1;34mCreate Group Chat\n");
-        printf("4. \033[1;34mSend Message(Group)\n");
-        printf("5. \033[1;34mOpen Chat (GC)\n");
-        printf("0. \033[1;34mExit\n");
+        green();
+        printf("-> client %d interface\n", clientID);
+        printf("\n\033[1;97m1. \033[1;34mSend Message (Private)\n");
+        printf("\033[1;97m2. \033[1;34mOpen Chat (Private)\n");
+        printf("\033[1;97m3. \033[1;34mCreate Group Chat\n");
+        printf("\033[1;97m4. \033[1;34mSend Message(Group)\n");
+        printf("\033[1;97m5. \033[1;34mOpen Chat (GC)\n");
+        printf("\033[1;97m0. \033[1;34mExit\n");
         reset();
         scanf("%d", &ch);
         
@@ -118,7 +118,6 @@ int main(int argc, char *argv[]) {
                      getchar();
                      exit(EXIT_FAILURE);
                 }
-                
                 break;
             case 2:
                 if(maxclients==1){
@@ -129,13 +128,13 @@ int main(int argc, char *argv[]) {
                 sharedmem = shmat(shmID, NULL, 0);
                 reset();
 
-                red();
+                printf("\033[1;94m");
                 invflag = false;
 
                 for(int i=1; i<=maxclients; i++){
                     if(i==clientID)
                     continue;
-                printf("Client %d\n", i);
+                printf("client %d\n", i);
                 }
                 reset();
                 int chtopen;
@@ -143,6 +142,7 @@ int main(int argc, char *argv[]) {
                     invflag=false;
                 printf("\nopen chat with :\n");
                 scanf("%d", &chtopen);
+                reset();
                 if(chtopen == clientID || chtopen > maxclients || chtopen<=0){
                     printf("invalid request... try again\n");
                     invflag=true;
@@ -178,7 +178,9 @@ int main(int argc, char *argv[]) {
                 sharedmem->openChat=false;
 
                 printf("\n> press any key to return");
+                clear_input_buffer();
                 getchar();
+
                 }else{
                     printf("[ Empty ]\n");
                 }
@@ -186,13 +188,15 @@ int main(int argc, char *argv[]) {
             case 3:
                 sharedmem = shmat(shmID, NULL, 0);
                 blue();
-                printf("group chat name : ");
+                printf("\033[1;97mgroup chat name : ");
                 reset();
+                green();
                 char tmpname[20];
                 scanf("%s", tmpname);
+                reset();
                 sharedmem->from = clientID;
                 strcpy(sharedmem->message, tmpname);
-                red();
+                printf("\033[1;94m");
                 for (int i = 1; i <= maxclients; i++) {
                     if(i == clientID)
                     continue;
@@ -203,7 +207,8 @@ int main(int argc, char *argv[]) {
                 int tselected=0;
                 // Prompt the user to choose clients
                 int sl;
-                printf("enter the client numbers you want to add (0 to finish): \n");
+                printf("enter the client numbers you want to add \033[1;97m(0 to finish): \n");
+                reset();
                 do{
 
                     scanf("%d", &sl);
@@ -211,12 +216,16 @@ int main(int argc, char *argv[]) {
                         break;
                     }
                     if(sl<=0 || sl>maxclients || sl == clientID){
+                        lightRed();
                         printf("invalid request... try again\n");
+                        reset();
                     }else{
                         bool inv=false;
                         for(int i=0; i<tselected; i++)
                         if(selected[i]==sl){
+                        lightRed();
                             printf("invalid request... try again\n");
+                        reset();
                             inv = true;
                             break;
                         }
@@ -251,11 +260,14 @@ int main(int argc, char *argv[]) {
                      getchar();
                      exit(EXIT_FAILURE);
                 }
-                printf("fetching...\n\n");
+                
+                printf("\033[1;97mfetching...\n\n");reset();
                 sleep(1);
                 sharedmem = shmat(shmID, NULL, 0);
                 if(sharedmem->intpass==-1){
+                    lightRed();
                 printf("no gcs joined/created.\n");
+                reset();
                 break;
                 }
                 else{
@@ -265,10 +277,11 @@ int main(int argc, char *argv[]) {
                     reset();
                 }
                 int choicegc=0;
-                printf("\nselect:");
+                printf("\n\033[1;97mselect: ");reset();
                 scanf("%d",&choicegc);
                 if(choicegc>sharedmem->intpass || choicegc <=0){
-                    printf("invalid input\n");
+                    lightRed();
+                    printf("invalid input\n"); reset();
                     break;
                 }
                 printf("\n");
@@ -281,13 +294,13 @@ int main(int argc, char *argv[]) {
                 blue();
                 reset();
                 sharedmem->premessagesend=true;
-                printf("loading...\n");
+                printf("\033[1;97mloading...\n"); reset();
                 sleep(1);
                 SharedData *clientData = shmat(shmID, NULL, 0); //created another one to check for error
                 
 
                 if(clientData->failflag==true){
-                    red();
+                    lightRed();
                     printf("invalid request :: failed.\n");
                     reset();
                     clientData->failflag=false;
@@ -327,11 +340,13 @@ int main(int argc, char *argv[]) {
                      getchar();
                      exit(EXIT_FAILURE);
                 }
-                printf("fetching...\n\n");
+                printf("\033[1;97mfetching...\n\n");reset();
                 sleep(1);
                 sharedmem = shmat(shmID, NULL, 0);
                 if(sharedmem->intpass==-1){
+                    lightRed();
                 printf("no gcs joined/created.\n");
+                reset();
                 break;
                 }
                 else{
@@ -341,17 +356,17 @@ int main(int argc, char *argv[]) {
                     reset();
                 }
                 choicegc=0;
-                printf("\nselect:");
+                printf("\n\033[1;97mselect: ");reset();
                 clear_input_buffer();
                 scanf("%d",&choicegc);
                 printf("\n");
                 sharedmem->from=clientID;
                 strcpy(sharedmem->message1, sharedmem->chararrshare[choicegc-1]);
                 sharedmem->grpmsgshow=true;
-                printf("loading...\n");
+                printf("\033[1;97mloading...\n"); reset();
                 sleep(1);
                 if(sharedmem->failflag==true){
-                    red();
+                    lightRed();
                     printf("invalid request :: failed.\n");
                     reset();
                     sharedmem->failflag=false;
@@ -377,21 +392,16 @@ int main(int argc, char *argv[]) {
                      getchar();
                      exit(EXIT_FAILURE);
                 }
-
-
+                clear_input_buffer();
+                printf("\n> press any key to return");
+                getchar();
             break;
         }
     }
-
-    // Detach from the shared memory segment when done
     if (shmdt(sharedmem) == -1) {
         perror("shmdt");
         exit(EXIT_FAILURE);
     }
 
     return 0;
-}
-
-void sendmsg(int cls, SharedData *sharedmem) {
-    
 }
